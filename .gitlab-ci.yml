@@ -1,0 +1,14 @@
+quarkus:deployProduction:
+  image: oracle/graalvm-ce
+  stage: deploy
+  environment: live
+  script:
+    - ./mvnw compile quarkus:build
+    - gu install native-image
+    - yum -y install openssh-clients
+    - ./mvnw package -Pnative
+    - chmod 400 $CA_AWS_VIRGINIA_JESSICA
+    - scp -o StrictHostKeyChecking=no -i$CA_AWS_VIRGINIA_JESSICA ./target/crud-quarkus-panache-1.0.0-runner ubuntu@ec2-54-172-20-211.compute-1.amazonaws.com:/home/ubuntu/nativo
+    - ssh -o StrictHostKeyChecking=no -i$CA_AWS_VIRGINIA_JESSICA ubuntu@ec2-54-172-20-211.compute-1.amazonaws.com './nativo/subir.sh | exit'
+  only:
+    - master
